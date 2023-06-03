@@ -227,38 +227,59 @@ function getArrCellsAreResources(cells){
 	}
 	return ressourcesCells;
 }
-
-
-// class rssMap {
-// 	constructor(index, quantity, path) {
-// 		this.index = index;
-// 		this.quantity = quantity;
-// 		this.path = path;
-// 		this.distance = path.length() - 1;
-// 	}
-// }
+function calculateTotalRessources(cells){
+	let total = 0;
+	for (let cell of cells) {
+		total += cell.resources;
+	}
+	return total;
+}
 
 let cellOeufs = [];
 let cellCristaux = [];
 
 for (let cell of cells) {
 	if (cell.type == 1)
-		cellOeufs.push(cell);
+	cellOeufs.push(cell);
 	else if (cell.type == 2)
-		cellCristaux.push(cell);
+	cellCristaux.push(cell);
 }
-
-// for (let cell of cells) 
-// 	if (cell.type == 1)
-// 		cellOeufs.push(new rssMap(cell.index, cell.resources, shortestPath(generateGraph(cells), myBase, cell.index)));
-// 	else if (cell.type == 2)
-// 		cellCristaux.push(new rssMap(cell.index, cell.resources, shortestPath(generateGraph(cells), myBase, cell.index)));
-// }
 
 cellOeufs.sort((a, b) => b.resources - a.resources);
 cellOeufs.sort((a, b) => a.distance - b.distance);
 cellCristaux.sort((a, b) => b.resources - a.resources);
 cellCristaux.sort((a, b) => a.distance - b.distance);
+
+
+function updateTabRessources() {
+	for (let cell of cellOeufs) 
+	{
+		if (cell.resources == 0) //si == 0 il faut le supprimer du tableau
+		{
+			cellOeufs.splice(cellOeufs.indexOf(cell), 1);
+		}
+	}
+	for (let cell of cellCristaux)
+	{
+		if (cell.resources == 0) //si == 0 il faut le supprimer du tableau
+		{
+			cellCristaux.splice(cellCristaux.indexOf(cell), 1);
+		}
+	}
+	//console error pour verifier le contenu des tableaux
+	displayCellsOeufsAndCrist();
+}
+
+
+
+let totalOeufs = 0;
+let totalCristaux = 0;
+function updateTotalRessourceInMap(){
+	totalOeufs = calculateTotalRessources(cellOeufs);
+	totalCristaux = calculateTotalRessources(cellCristaux);
+	console.error("DBG********Total Oeufs Map : " + totalOeufs + "\nDBG********Total Oeufs Map : " + totalOeufs);
+}
+
 
 //verifier le contenu des tableaux
 function displayCellsOeufsAndCrist()
@@ -273,6 +294,15 @@ function displayCellsOeufsAndCrist()
 }
 
 displayCellsOeufsAndCrist();
+
+
+
+
+
+
+
+
+
 // game loop
 let i = 0;
 while (true) {
@@ -298,22 +328,36 @@ while (true) {
 	if(cellOeufs[0] && cellOeufs[0].resources > 0){ 
 		line(cellOeufs[0].index, myBase, 1);
 		if (cellOeufs[1] && cellOeufs[1].resources > 0 && cellOeufs[1].isNeighbour(myBase))
-			line(cellOeufs[1].index, myBase, 1);
+		{ 
+			line(cellOeufs[1].index, myBase, 1); 
+		}
 		if (cellOeufs[2] && cellOeufs[2].resources > 0 && cellOeufs[2].isNeighbour(myBase))
-			line(cellOeufs[2].index, myBase, 1);
+		{ 
+			line(cellOeufs[2].index, myBase, 1); 
+		}
 		if (cellOeufs[3] && cellOeufs[3].resources > 0 && cellOeufs[3].isNeighbour(myBase))
-			line(cellOeufs[3].index, myBase, 1);
+		{ 
+			line(cellOeufs[3].index, myBase, 1); 
+		}
 	}
-	if (cellOeufs[1] && cellOeufs[1].resources > 0)
+	if (cellOeufs[1] && (cellOeufs[1].resources > 0 ) ) //calculer les total ressource et faire par pourcentage TODO::
+	{
 		line(cellOeufs[1].index, myBase, 1)
-	else if (cellOeufs[2] && cellOeufs[2].resources > 0)
+	}
+	if (cellOeufs[2] && cellOeufs[2].resources > 0)
+	{
 		line(cellOeufs[2].index, myBase, 1)
-	else if (cellOeufs[3] && cellOeufs[3].resources > 0 && cellOeufs[3].distance < cellCristaux[i].distance)
+	}
+	if (cellOeufs[3] && cellOeufs[3].resources > 0 && cellOeufs[3].distance < cellCristaux[i].distance)
+	{
 		line(cellOeufs[3].index, myBase, 1)
-	else if (cellCristaux[i] && cellCristaux[i].resources > 0)
+	}
+	if (cellCristaux[i] && cellCristaux[i].resources > 0)
+	{
 		line(cellCristaux[i].index, myBase, 1)
-
-		displayCellsOeufsAndCrist();
+	}
+	
+	displayCellsOeufsAndCrist(); //DEBUG FIXME:
 
 	sendCommands();
 	// Write an action using console.log()
