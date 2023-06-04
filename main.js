@@ -96,7 +96,7 @@ class Cell{
 const numberOfCells = parseInt(readline()); // amount of hexagonal cells in this map
 for (let i = 0; i < numberOfCells; i++) {
 	var inputs = readline().split(' ');
-	console.error('DBG INPUT STARTER : ' + inputs);
+	// console.error('DBG INPUT STARTER : ' + inputs); TODO:FIXME:DEBUG
 	const type = parseInt(inputs[0]); // 0 for empty, 1 for eggs, 2 for crystal
 	
 	const initialResources = parseInt(inputs[1]); // the initial amount of eggs/crystals on this cell
@@ -272,6 +272,11 @@ function updateTabRessources() {
 
 
 
+let totalOeufsStart = calculateTotalRessources(cellOeufs);
+let totalCristauxStart = calculateTotalRessources(cellCristaux);
+console.error("DBG********Total Oeufs Start : " + totalOeufsStart + "\nDBG********Total Cristaux Start : " + totalCristauxStart);
+
+
 let totalOeufs = 0;
 let totalCristaux = 0;
 function updateTotalRessourceInMap(){
@@ -293,6 +298,7 @@ function displayCellsOeufsAndCrist()
 	}
 }
 
+updateTotalRessourceInMap();
 displayCellsOeufsAndCrist();
 
 
@@ -319,44 +325,126 @@ while (true) {
 	let bestCell = findBestCell(CellsRessources);
 	console.error(bestCell);
 
-	console.error('DBG cellOeuf[0].resources: ' + cellOeufs[0].resources + ' | ' + cellOeufs[1].resources);
+	// console.error('DBG cellOeuf[0].resources: ' + cellOeufs[0].resources + ' | ' + cellOeufs[1].resources); //TODO:FIXME:
 	if (cellCristaux[i].resources == 0)
 	{	for (;  cellCristaux[i] && cellCristaux[i].resources == 0 ; i++)
 		{}
 	}
 	console.error('DBG i :  ' + i);
-	if(cellOeufs[0] && cellOeufs[0].resources > 0){ 
-		line(cellOeufs[0].index, myBase, 1);
-		if (cellOeufs[1] && cellOeufs[1].resources > 0 && cellOeufs[1].isNeighbour(myBase))
-		{ 
-			line(cellOeufs[1].index, myBase, 1); 
-		}
-		if (cellOeufs[2] && cellOeufs[2].resources > 0 && cellOeufs[2].isNeighbour(myBase))
-		{ 
-			line(cellOeufs[2].index, myBase, 1); 
-		}
-		if (cellOeufs[3] && cellOeufs[3].resources > 0 && cellOeufs[3].isNeighbour(myBase))
-		{ 
-			line(cellOeufs[3].index, myBase, 1); 
-		}
+
+	updateTotalRessourceInMap();
+
+
+	// if(cellOeufs[0] && cellOeufs[0].resources > 0){ 
+	// 	line(cellOeufs[0].index, myBase, 1);
+	// 	if (cellOeufs[1] && cellOeufs[1].resources > 0 && cellOeufs[1].isNeighbour(myBase))
+	// 	{ 
+	// 		line(cellOeufs[1].index, myBase, 1); 
+	// 	}
+	// 	if (cellOeufs[2] && cellOeufs[2].resources > 0 && cellOeufs[2].isNeighbour(myBase))
+	// 	{ 
+	// 		line(cellOeufs[2].index, myBase, 1); 
+	// 	}
+	// 	if (cellOeufs[3] && cellOeufs[3].resources > 0 && cellOeufs[3].isNeighbour(myBase))
+	// 	{ 
+	// 		line(cellOeufs[3].index, myBase, 1); 
+	// 	}
+	// }
+	// if (cellOeufs[1] && (cellOeufs[1].resources > 0 ) ) //calculer les total ressource et faire par pourcentage TODO::
+	// {
+	// 	line(cellOeufs[1].index, myBase, 1)
+	// }
+	// if (cellOeufs[2] && cellOeufs[2].resources > 0)
+	// {
+	// 	line(cellOeufs[2].index, myBase, 1)
+	// }
+	// if (cellOeufs[3] && cellOeufs[3].resources > 0 && cellOeufs[3].distance < cellCristaux[i].distance)
+	// {
+	// 	line(cellOeufs[3].index, myBase, 1)
+	// }
+	// if (cellCristaux[i] && cellCristaux[i].resources > 0)
+	// {
+	// 	line(cellCristaux[i].index, myBase, 1)
+	// }
+	// if (cellCristaux[i + 1] && cellCristaux[i + 1].resources > 0)
+	// {
+	// 	line(cellCristaux[i + 1].index, myBase, 1)
+	// }
+
+	let coefStrat = 0.85;
+	console.error('DBG totalOeufsStart * coef : '  + totalOeufs + ' <? ' + (totalOeufsStart * coefStrat) + ' | ' + 'DBG totalCristauxStart * coef : ' + totalCristaux + ' <? '+ (totalCristauxStart * coefStrat));
+	
+	//////////////////////////////////////////////////
+	//Rajoute 1 si le nombre de cellules est impair
+	let endOeufs = 0;
+	if (cellOeufs.length % 2 == 0)
+	{	
+		console.error(' DBG endOeuf TRUE');
+		endOeufs = cellOeufs.length / 2;
 	}
-	if (cellOeufs[1] && (cellOeufs[1].resources > 0 ) ) //calculer les total ressource et faire par pourcentage TODO::
-	{
-		line(cellOeufs[1].index, myBase, 1)
-	}
-	if (cellOeufs[2] && cellOeufs[2].resources > 0)
-	{
-		line(cellOeufs[2].index, myBase, 1)
-	}
-	if (cellOeufs[3] && cellOeufs[3].resources > 0 && cellOeufs[3].distance < cellCristaux[i].distance)
-	{
-		line(cellOeufs[3].index, myBase, 1)
-	}
-	if (cellCristaux[i] && cellCristaux[i].resources > 0)
-	{
-		line(cellCristaux[i].index, myBase, 1)
+	else
+	{	
+		endOeufs = (cellOeufs.length / 2) + 1;
 	}
 	
+	let endCristaux = 0;
+	if (cellCristaux.length % 2 == 0)
+	{
+		console.error(' DBG endCristaux TRUE');
+		endCristaux = cellCristaux.length / 2;
+	}
+	else
+	{
+		endCristaux = (cellCristaux.length / 2) + 1;
+	}
+	///////////////////////////////////////////////////
+	
+	
+	
+	if (totalOeufs > (totalOeufsStart * coefStrat))
+	{
+		console.error(' DBG FOR OEUF  IN COEFF');
+		for (let i = 0; i < endOeufs; i++) 
+		{
+			if (cellOeufs[i].resources > 0)
+			{
+				line(cellOeufs[i].index, myBase, 2);
+			}
+		}
+	}
+	else
+	{
+		console.error(' DBG FOR OEUF  OUUUUUT COEFF');
+		for (let i = 0; i < cellOeufs.length; i++) 
+		{
+			if (cellOeufs[i].resources > 0)
+			{
+				line(cellOeufs[i].index, myBase, 2);
+			}
+		}
+	}
+	
+	if (totalCristaux > (totalCristauxStart * coefStrat))
+	{
+		console.error(' DBG FOR CRISTAUX  IN COEFF');
+		for (let i = 0; i < endCristaux; i++) 
+		{
+			if (cellCristaux[i].resources > 0) {
+				line(cellCristaux[i].index, myBase, 1);
+			}
+		}
+	}
+	else
+	{
+		console.error(' DBG FOR CRISTAUX  OUUUUUUT COEFF');
+		for (let i = 0; i < cellCristaux.length; i++) 
+		{
+			if (cellCristaux[i].resources > 0) {
+				line(cellCristaux[i].index, myBase, 1);
+			}
+		}
+	}
+
 	displayCellsOeufsAndCrist(); //DEBUG FIXME:
 
 	sendCommands();
