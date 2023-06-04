@@ -379,7 +379,6 @@ while (true) {
 	let endOeufs = 0;
 	if (cellOeufs.length % 2 == 0)
 	{	
-		console.error(' DBG endOeuf TRUE');
 		endOeufs = cellOeufs.length / 2;
 	}
 	else
@@ -390,7 +389,6 @@ while (true) {
 	let endCristaux = 0;
 	if (cellCristaux.length % 2 == 0)
 	{
-		console.error(' DBG endCristaux TRUE');
 		endCristaux = cellCristaux.length / 2;
 	}
 	else
@@ -403,7 +401,6 @@ while (true) {
 	
 	if (totalOeufs > (totalOeufsStart * coefStrat))
 	{
-		console.error(' DBG FOR OEUF  IN COEFF');
 		for (let i = 0; i < endOeufs; i++) 
 		{
 			if (cellOeufs[i].resources > 0)
@@ -414,7 +411,6 @@ while (true) {
 	}
 	else
 	{
-		console.error(' DBG FOR OEUF  OUUUUUT COEFF');
 		for (let i = 0; i < cellOeufs.length; i++) 
 		{
 			if (cellOeufs[i].resources > 0)
@@ -426,7 +422,6 @@ while (true) {
 	
 	if (totalCristaux > (totalCristauxStart * coefStrat))
 	{
-		console.error(' DBG FOR CRISTAUX  IN COEFF');
 		for (let i = 0; i < endCristaux; i++) 
 		{
 			if (cellCristaux[i].resources > 0) {
@@ -436,7 +431,6 @@ while (true) {
 	}
 	else
 	{
-		console.error(' DBG FOR CRISTAUX  OUUUUUUT COEFF');
 		for (let i = 0; i < cellCristaux.length; i++) 
 		{
 			if (cellCristaux[i].resources > 0) {
