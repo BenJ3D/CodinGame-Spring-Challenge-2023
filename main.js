@@ -38,12 +38,14 @@ function sendCommands() {
 /**************************************** GLOBAL VAR ****************************************/
 let cells = [];
 let myBase = 0;
+let myBases = [];
 
 
-class Cell{
+let nbStartAnts = 0;
 
-	constructor(index, type, n0, n1, n2, n3, n4, n5, initialResources)
-	{
+class Cell {
+
+	constructor(index, type, n0, n1, n2, n3, n4, n5, initialResources) {
 		this.index = index;
 		this.type = type;
 		this.n0 = n0;
@@ -58,19 +60,20 @@ class Cell{
 			this.resources = initialResources;
 		else
 			this.resources = 0;
-		
-		this.distance = 0;
+
+		this.distance = [];
+		this.pathTo = [];
 	}
 
-	getIndex(){
+	getIndex() {
 		return this.index;
 	}
 
-	getType(){
+	getType() {
 		return this.type;
 	}
 
-	updateAll(resources, myAnts, oppAnts){
+	updateAll(resources, myAnts, oppAnts) {
 		this.resources = resources;
 		if (resources == 0)
 			this.type = 0;
@@ -78,13 +81,17 @@ class Cell{
 		this.oppAnts = oppAnts;
 	}
 
-	calculateDistance(cellsRef){
-		this.pathTo = shortestPath(generateGraph(cellsRef), myBase, this.index);
-		this.distance = this.pathTo.length - 1;
-
+	calculateDistance(cellsRef) {
+		//adaptation pour le multi bases
+		for (let i = 0; i < myBases.length; i++) {
+			this.pathTo[i] = shortestPath(generateGraph(cellsRef), myBases[i], this.index);
+			this.distance[i] = this.pathTo[i].length - 1;
+		}
+		// this.pathTo = shortestPath(generateGraph(cellsRef), myBase, this.index);
+		// this.distance = this.pathTo.length - 1;
 	}
 
-	isNeighbour(index){
+	isNeighbour(index) {
 		if ((this.n0 == index || this.n1 == index || this.n2 == index || this.n3 == index || this.n4 == index || this.n5 == index))
 			return true;
 		return false;
@@ -98,7 +105,7 @@ for (let i = 0; i < numberOfCells; i++) {
 	var inputs = readline().split(' ');
 	// console.error('DBG INPUT STARTER : ' + inputs); TODO:FIXME:DEBUG
 	const type = parseInt(inputs[0]); // 0 for empty, 1 for eggs, 2 for crystal
-	
+
 	const initialResources = parseInt(inputs[1]); // the initial amount of eggs/crystals on this cell
 	const neigh0 = parseInt(inputs[2]); // the index of the neighbouring cell for each direction
 	const neigh1 = parseInt(inputs[3]);
@@ -116,6 +123,7 @@ const numberOfBases = parseInt(readline());
 var inputs = readline().split(' ');
 for (let i = 0; i < numberOfBases; i++) {
 	const myBaseIndex = parseInt(inputs[i]);
+	myBases.push(myBaseIndex);
 	myBase = myBaseIndex;
 }
 var inputs = readline().split(' ');
@@ -192,8 +200,7 @@ function shortestPath(graph, start, end) {
 /**************************************END CALCUL DISTANCE **************************************/
 
 
-for (let cell of cells)
-{
+for (let cell of cells) {
 	cell.calculateDistance(cells);
 }
 
@@ -207,27 +214,26 @@ for (let cell of cells)
 
 
 //fonction qui prend en parametre un tableau de Cell et cherche la cellule avec le plus de ressources
-function findBestCell(cells){
+function findBestCell(cells) {
 	let bestCell = 0;
 	for (let i = 0; i < cells.length; i++) {
-		if(cells[i].resources > bestCell){
+		if (cells[i].resources > bestCell) {
 			bestCell = cells[i].getIndex();
 		}
 	}
 	return bestCell;
 }
 
-function getArrCellsAreResources(cells){
+function getArrCellsAreResources(cells) {
 	let ressourcesCells = [];
 
-	for (let cell of cells)
-	{
+	for (let cell of cells) {
 		if (cell.resources > 0)
 			ressourcesCells.push(cell);
 	}
 	return ressourcesCells;
 }
-function calculateTotalRessources(cells){
+function calculateTotalRessources(cells) {
 	let total = 0;
 	for (let cell of cells) {
 		total += cell.resources;
@@ -240,27 +246,32 @@ let cellCristaux = [];
 
 for (let cell of cells) {
 	if (cell.type == 1)
-	cellOeufs.push(cell);
+		cellOeufs.push(cell);
 	else if (cell.type == 2)
-	cellCristaux.push(cell);
+		cellCristaux.push(cell);
 }
 
 cellOeufs.sort((a, b) => b.resources - a.resources);
-cellOeufs.sort((a, b) => a.distance - b.distance);
+for (let i = 0; i < myBases.length; i++) {
+	cellOeufs.sort((a, b) => a.distance[i] - b.distance[i]);
+}
+// cellOeufs.sort((a, b) => a.distance - b.distance);
+
 cellCristaux.sort((a, b) => b.resources - a.resources);
-cellCristaux.sort((a, b) => a.distance - b.distance);
+for (let i = 0; i < myBases.length; i++) {
+	cellCristaux.sort((a, b) => a.distance[i] - b.distance[i]);
+}
+// cellCristaux.sort((a, b) => a.distance - b.distance);
 
 
 function updateTabRessources() {
-	for (let cell of cellOeufs) 
-	{
+	for (let cell of cellOeufs) {
 		if (cell.resources == 0) //si == 0 il faut le supprimer du tableau
 		{
 			cellOeufs.splice(cellOeufs.indexOf(cell), 1);
 		}
 	}
-	for (let cell of cellCristaux)
-	{
+	for (let cell of cellCristaux) {
 		if (cell.resources == 0) //si == 0 il faut le supprimer du tableau
 		{
 			cellCristaux.splice(cellCristaux.indexOf(cell), 1);
@@ -279,7 +290,7 @@ console.error("DBG********Total Oeufs Start : " + totalOeufsStart + "\nDBG******
 
 let totalOeufs = 0;
 let totalCristaux = 0;
-function updateTotalRessourceInMap(){
+function updateTotalRessourceInMap() {
 	totalOeufs = calculateTotalRessources(cellOeufs);
 	totalCristaux = calculateTotalRessources(cellCristaux);
 	console.error("DBG********Total Oeufs Map : " + totalOeufs + "\nDBG********Total Oeufs Map : " + totalOeufs);
@@ -287,14 +298,13 @@ function updateTotalRessourceInMap(){
 
 
 //verifier le contenu des tableaux
-function displayCellsOeufsAndCrist()
-{
+function displayCellsOeufsAndCrist() {
 	for (let cell of cellOeufs) {
-		console.error("DBG********CellOeuf n°" + cell.index + " ressources : " + cell.resources + '\t' + "distance : " + cell.distance);
+		console.error("DBG********CellOeuf n°" + cell.index + " ressources : " + cell.resources + '\t' + "distance : " + cell.distance[0]);
 	}
-	
+
 	for (let cell of cellCristaux) {
-		console.error("DBG********CellCristaux n°" + cell.index + " ressources : " + cell.resources + '\t' + "distance : " + cell.distance);
+		console.error("DBG********CellCristaux n°" + cell.index + " ressources : " + cell.resources + '\t' + "distance : " + cell.distance[0]);
 	}
 }
 
@@ -302,139 +312,142 @@ updateTotalRessourceInMap();
 displayCellsOeufsAndCrist();
 
 
+function definirBaseLaPlusProche(cellule) {
+	let baseLaPlusProche = 0;
+	for (let i = 0; i < myBases.length; i++) {
+		if (cellule.distance[i] < cellule.distance[baseLaPlusProche]) {
+			baseLaPlusProche = i;
+		}
+	}
+	return baseLaPlusProche;
+}
 
 
-
-
-
-
+let startFirstOeuf = cellOeufs[0].resources;
 
 // game loop
 let i = 0;
 while (true) {
 	//boucle for pour remplir le tableau de cellules
 	for (let i = 0; i < numberOfCells; i++) {
-		var inputs = readline().split(' '); 
+		var inputs = readline().split(' ');
 		const resources = parseInt(inputs[0]); // the current amount of eggs/crystals on this cell
 		const myAnts = parseInt(inputs[1]); // the amount of your ants on this cell
 		const oppAnts = parseInt(inputs[2]); // the amount of opponent ants on this cell
 		cells[i].updateAll(resources, myAnts, oppAnts);
 	}
 
-	let CellsRessources = getArrCellsAreResources(cells);
-	let bestCell = findBestCell(CellsRessources);
-	console.error(bestCell);
-
-	// console.error('DBG cellOeuf[0].resources: ' + cellOeufs[0].resources + ' | ' + cellOeufs[1].resources); //TODO:FIXME:
-	if (cellCristaux[i].resources == 0)
-	{	for (;  cellCristaux[i] && cellCristaux[i].resources == 0 ; i++)
-		{}
-	}
-	console.error('DBG i :  ' + i);
-
 	updateTotalRessourceInMap();
 
-
-	// if(cellOeufs[0] && cellOeufs[0].resources > 0){ 
-	// 	line(cellOeufs[0].index, myBase, 1);
-	// 	if (cellOeufs[1] && cellOeufs[1].resources > 0 && cellOeufs[1].isNeighbour(myBase))
-	// 	{ 
-	// 		line(cellOeufs[1].index, myBase, 1); 
-	// 	}
-	// 	if (cellOeufs[2] && cellOeufs[2].resources > 0 && cellOeufs[2].isNeighbour(myBase))
-	// 	{ 
-	// 		line(cellOeufs[2].index, myBase, 1); 
-	// 	}
-	// 	if (cellOeufs[3] && cellOeufs[3].resources > 0 && cellOeufs[3].isNeighbour(myBase))
-	// 	{ 
-	// 		line(cellOeufs[3].index, myBase, 1); 
-	// 	}
-	// }
-	// if (cellOeufs[1] && (cellOeufs[1].resources > 0 ) ) //calculer les total ressource et faire par pourcentage TODO::
-	// {
-	// 	line(cellOeufs[1].index, myBase, 1)
-	// }
-	// if (cellOeufs[2] && cellOeufs[2].resources > 0)
-	// {
-	// 	line(cellOeufs[2].index, myBase, 1)
-	// }
-	// if (cellOeufs[3] && cellOeufs[3].resources > 0 && cellOeufs[3].distance < cellCristaux[i].distance)
-	// {
-	// 	line(cellOeufs[3].index, myBase, 1)
-	// }
-	// if (cellCristaux[i] && cellCristaux[i].resources > 0)
-	// {
-	// 	line(cellCristaux[i].index, myBase, 1)
-	// }
-	// if (cellCristaux[i + 1] && cellCristaux[i + 1].resources > 0)
-	// {
-	// 	line(cellCristaux[i + 1].index, myBase, 1)
-	// }
-
-	let coefStrat = 0.85;
-	console.error('DBG totalOeufsStart * coef : '  + totalOeufs + ' <? ' + (totalOeufsStart * coefStrat) + ' | ' + 'DBG totalCristauxStart * coef : ' + totalCristaux + ' <? '+ (totalCristauxStart * coefStrat));
-	
+	//boucle for pour remplir le tableau de bases
 	//////////////////////////////////////////////////
+	let coefStratOeuf = 0.5;
+	let coefStratCristaux = 0.85;
+
+	let puissanceOeufs = 2;
+	let puissanceCristaux = 3;
+
+	let puissanceOeufsS2 = 1;
+	let puissanceCristauxS2 = 3;
+	console.error('DBG totalOeufsStart * coef : ' + totalOeufs + ' <? ' + (totalOeufsStart * coefStratOeuf) + ' | ' + 'DBG totalCristauxStart * coef : ' + totalCristaux + ' <? ' + (totalCristauxStart * coefStratCristaux));
 	//Rajoute 1 si le nombre de cellules est impair
-	let endOeufs = 0;
-	if (cellOeufs.length % 2 == 0)
-	{	
-		endOeufs = cellOeufs.length / 2;
-	}
-	else
-	{	
-		endOeufs = (cellOeufs.length / 2) + 1;
-	}
-	
-	let endCristaux = 0;
-	if (cellCristaux.length % 2 == 0)
+
+	if (cellOeufs[0].resources > (startFirstOeuf * 0.5)) 
 	{
-		endCristaux = cellCristaux.length / 2;
-	}
-	else
-	{
-		endCristaux = (cellCristaux.length / 2) + 1;
-	}
-	///////////////////////////////////////////////////
-	
-	
-	
-	if (totalOeufs > (totalOeufsStart * coefStrat))
-	{
-		for (let i = 0; i < endOeufs; i++) 
+		console.error("DBG*********Stratégie 1");
+		
+		if (myBases.length == 1)
 		{
-			if (cellOeufs[i].resources > 0)
-			{
-				line(cellOeufs[i].index, myBase, 2);
+			if (cellOeufs[0].distance[0] < cellOeufs[0].distance[1]) {
+				line(cellOeufs[0].index, myBases[1], puissanceOeufs);
+			}
+			else {
+				line(cellOeufs[0].index, myBases[0], puissanceOeufs);
+			}
+		}
+		else
+		{
+			if (cellOeufs[0].distance[0] < cellOeufs[0].distance[1]) {
+				line(cellOeufs[0].index, myBases[1], puissanceOeufs);
+				if (cellOeufs[1]) {
+					line(cellOeufs[1].index, myBases[0], puissanceOeufs);
+				}
+			}
+			else {
+				line(cellOeufs[0].index, myBases[0], puissanceOeufs);
+				if (cellOeufs[1]) {
+					line(cellOeufs[1].index, myBases[1], puissanceOeufs);
+				}
 			}
 		}
 	}
-	else
-	{
-		for (let i = 0; i < cellOeufs.length; i++) 
-		{
-			if (cellOeufs[i].resources > 0)
-			{
-				line(cellOeufs[i].index, myBase, 2);
+	else {
+		let endOeufs = 0;
+		if (cellOeufs.length % 2 == 0) {
+			endOeufs = cellOeufs.length / 2;
+		}
+		else {
+			endOeufs = (cellOeufs.length / 2) + 1;
+		}
+
+		let endCristaux = 0;
+		if (cellCristaux.length % 2 == 0) {
+			endCristaux = cellCristaux.length / 2;
+		}
+		else {
+			endCristaux = (cellCristaux.length / 2) + 1;
+		}
+		///////////////////////////////////////////////////
+
+
+		if (totalOeufs > (totalOeufsStart * coefStratOeuf)) {
+			for (let i = 0; i < endOeufs; i++) {
+				if (cellOeufs[i].resources > 0) {
+					if (cellOeufs[i].distance[0] < cellOeufs[i].distance[1]) {
+						line(cellOeufs[i].index, myBases[1], puissanceOeufs);
+					}
+					else {
+						line(cellOeufs[i].index, myBases[0], puissanceOeufs);
+					}
+				}
 			}
 		}
-	}
-	
-	if (totalCristaux > (totalCristauxStart * coefStrat))
-	{
-		for (let i = 0; i < endCristaux; i++) 
-		{
-			if (cellCristaux[i].resources > 0) {
-				line(cellCristaux[i].index, myBase, 1);
+		else {
+			for (let i = 0; i < cellOeufs.length; i++) {
+				if (cellOeufs[i].resources > 0) {
+					if (cellOeufs[i].distance[0] < cellOeufs[i].distance[1]) {
+						line(cellOeufs[i].index, myBases[1], puissanceOeufsS2);
+					}
+					else {
+						line(cellOeufs[i].index, myBases[0], puissanceOeufsS2);
+					}
+				}
 			}
 		}
-	}
-	else
-	{
-		for (let i = 0; i < cellCristaux.length; i++) 
-		{
-			if (cellCristaux[i].resources > 0) {
-				line(cellCristaux[i].index, myBase, 1);
+
+		if (totalCristaux > (totalCristauxStart * coefStratCristaux)) {
+			for (let i = 0; i < endCristaux; i++) {
+				if (cellCristaux[i].resources > 0) {
+
+					if (cellCristaux[i].distance[0] < cellCristaux[i].distance[1]) {
+						line(cellCristaux[i].index, myBases[1], puissanceCristaux);
+					}
+					else {
+						line(cellCristaux[i].index, myBases[0], puissanceCristaux);
+					}
+				}
+			}
+		}
+		else {
+			for (let i = 0; i < cellCristaux.length; i++) {
+				if (cellCristaux[i].resources > 0) {
+					if (cellCristaux[i].distance[0] < cellCristaux[i].distance[1]) {
+						line(cellCristaux[i].index, myBases[1], puissanceCristauxS2);
+					}
+					else {
+						line(cellCristaux[i].index, myBases[0], puissanceCristauxS2);
+					}
+				}
 			}
 		}
 	}
@@ -442,13 +455,4 @@ while (true) {
 	displayCellsOeufsAndCrist(); //DEBUG FIXME:
 
 	sendCommands();
-	// Write an action using console.log()
-	// To debug: console.error('Debug messages...');
-	// beacon(26, 50);
-	// beacon(33, 50);
-	// line(myBase, bestCell, 100);
-
-	// WAIT | LINE <sourceIdx> <targetIdx> <strength> | BEACON <cellIdx> <strength> | MESSAGE <text>
-	// console.log('BEACON' + " 9" + " 50");
-
 }
